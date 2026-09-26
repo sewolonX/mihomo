@@ -37,6 +37,7 @@ var (
 		"WORKGROUP",
 	}
 	mishkaDefaultFakeIPRange = "28.0.0.0/8"
+	mishkaDefaultFakeIPRange6 = "fd11:1111:1111::/48"
 )
 
 func init() {
@@ -67,10 +68,15 @@ func patchMishka(cfg *RawConfig) {
 		cfg.DNS.NameServer = mishkaDefaultNameServers
 		cfg.DNS.EnhancedMode = C.DNSFakeIP
 		cfg.DNS.FakeIPRange = mishkaDefaultFakeIPRange
+		cfg.DNS.FakeIPRange6 = mishkaDefaultFakeIPRange6
 		cfg.DNS.FakeIPFilter = mishkaDefaultFakeIPFilter
 		if cfg.Tun.FileDescriptor > 0 {
 			cfg.ClashForAndroid.AppendSystemDNS = true
 		}
+	}
+	// 订阅自带 DNS 但缺 fake-ip-range6 时补上，否则 AAAA 查询返回空应答
+	if cfg.DNS.Enable && cfg.DNS.EnhancedMode == C.DNSFakeIP && cfg.DNS.FakeIPRange6 == "" {
+		cfg.DNS.FakeIPRange6 = mishkaDefaultFakeIPRange6
 	}
 	if cfg.Tun.FileDescriptor > 0 && cfg.ClashForAndroid.AppendSystemDNS {
 		cfg.DNS.NameServer = append(cfg.DNS.NameServer, "system://")
