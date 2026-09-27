@@ -1700,8 +1700,12 @@ func parseAuthentication(rawRecords []string) []auth.AuthUser {
 }
 
 func parseIPV6(rawCfg *RawConfig) {
-	if !rawCfg.IPv6 || !verifyIP6() {
+	if !rawCfg.IPv6 {
 		rawCfg.DNS.FakeIPRange6 = ""
+		rawCfg.Tun.Inet6Address = nil
+	} else if !verifyIP6() {
+		// 系统无 IPv6 连通性时仅清除 TUN IPv6 地址，保留 FakeIPRange6
+		// 让 DNS 仍可返回 AAAA 记录（eBPF 关闭 IPv6 时 IPv6 流量直连）
 		rawCfg.Tun.Inet6Address = nil
 	}
 }
